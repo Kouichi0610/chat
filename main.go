@@ -4,6 +4,7 @@ import (
 	"chat/auth"
 	"chat/chatroom"
 	"chat/template"
+	"chat/trace"
 	"flag"
 	"log"
 	"net/http"
@@ -17,7 +18,7 @@ func main() {
 	http.Handle("/chat", auth.MustAuth(template.New("chat.html")))
 	// chat.htmlでWebSocketを生成している
 	r, runner := chatroom.NewRoom()
-	//r.tracer = trace.New(os.Stdout)
+	runner.Tracer(trace.New(os.Stdout))
 	http.Handle("/room", r)
 	// チャットルームを開始する
 	runner.Run()

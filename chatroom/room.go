@@ -10,6 +10,7 @@ import (
 
 type Runner interface {
 	Run()
+	Tracer(t trace.Tracer)
 }
 
 type room struct {
@@ -62,6 +63,9 @@ func NewRoom() (http.Handler, Runner) {
 		tracer:  trace.Empty(),
 	}
 	return r, r
+}
+func (r *room) Tracer(t trace.Tracer) {
+	r.tracer = t
 }
 
 func (r *room) run() {
