@@ -16,6 +16,7 @@ func main() {
 	flag.Parse()
 
 	http.Handle("/chat", auth.MustAuth(template.New("chat.html")))
+	http.Handle("/login", template.New("login.html"))
 	// chat.htmlでWebSocketを生成している
 	r, runner := chatroom.NewRoom()
 	runner.Tracer(trace.New(os.Stdout))
