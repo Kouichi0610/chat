@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/gomniauth/providers/facebook"
 	"github.com/stretchr/gomniauth/providers/github"
 	"github.com/stretchr/gomniauth/providers/google"
+	"github.com/stretchr/objx"
 )
 
 func SetProviders() {
@@ -65,6 +66,30 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 			log.Fatalln("GetBeginAuthURLに失敗 ", prv, "-", err)
 		}
 		w.Header().Set("Location", loginUrl)
+		w.WriteHeader(http.StatusTemporaryRedirect)
+	case "callback":
+		provider, err := gomniauth.Provider(prv)
+		if err != nil {
+			log.Fatalln("認証プロバイダの取得に失敗 ", prv, "-", err)
+		}
+		creds, err := provider.CompleteAuth(objx.MustFromURLQuery(r.URL.RawQuery))
+		if err != nil {
+			log.Fatalln("認証を完了できませんでした ", prv, "-", err)
+		}
+		user, err := provider.GetUser(creds)
+		if err != nil {
+			log.Fatalln("ユーザの取得に失敗しました。 ", prv, "-", err)
+		}
+		authCookieValue := objx.New(map[string]interface{}{
+			"name": user.Name(),
+		}).MustBase64()
+		http.SetCookie(w, &http.Cookie{
+			Name:  "auth",
+			Value: authCookieValue,
+			Path:  "/",
+		})
+
+		w.Header()["Location"] = []string{"/chat"}
 		w.WriteHeader(http.StatusTemporaryRedirect)
 	default:
 		w.WriteHeader(http.StatusNotFound)
