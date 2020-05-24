@@ -14,6 +14,9 @@ import (
 func main() {
 	var addr = flag.String("addr", ":8080", "アプリケーションのアドレス")
 	flag.Parse()
+
+	auth.SetProviders()
+
 	r, runner := chatroom.NewRoom()
 	runner.Tracer(trace.New(os.Stdout))
 
