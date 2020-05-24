@@ -1,7 +1,10 @@
 package auth
 
 import (
+	"fmt"
+	"log"
 	"net/http"
+	"strings"
 )
 
 func MustAuth(handler http.Handler) http.Handler {
@@ -26,4 +29,21 @@ func (h *authHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		panic(err.Error())
 	}
 	h.next.ServeHTTP(w, r)
+}
+
+/*
+	サードパーティへのログイン処理を受け持つ
+	パスの形式: /auth/{action}/{provider}
+*/
+func LoginHandler(w http.ResponseWriter, r *http.Request) {
+	segs := strings.Split(r.URL.Path, "/")
+	action := segs[2]
+	provider := segs[3]
+	switch action {
+	case "login":
+		log.Println("TODO:Login ", provider)
+	default:
+		w.WriteHeader(http.StatusNotFound)
+		fmt.Fprintf(w, "%s には非対応", action)
+	}
 }

@@ -14,12 +14,13 @@ import (
 func main() {
 	var addr = flag.String("addr", ":8080", "アプリケーションのアドレス")
 	flag.Parse()
-
-	http.Handle("/chat", auth.MustAuth(template.New("chat.html")))
-	http.Handle("/login", template.New("login.html"))
-	// chat.htmlでWebSocketを生成している
 	r, runner := chatroom.NewRoom()
 	runner.Tracer(trace.New(os.Stdout))
+
+	// chat.htmlでWebSocketを生成している
+	http.Handle("/chat", auth.MustAuth(template.New("chat.html")))
+	http.Handle("/login", template.New("login.html"))
+	http.HandleFunc("/auth/", auth.LoginHandler)
 	http.Handle("/room", r)
 	// チャットルームを開始する
 	runner.Run()
