@@ -2,10 +2,13 @@
 package template
 
 import (
+	"fmt"
 	"net/http"
 	"path/filepath"
 	"sync"
 	"text/template"
+
+	"github.com/stretchr/objx"
 )
 
 func New(path string) http.Handler {
@@ -25,5 +28,14 @@ func (t *templateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		path := filepath.Join("templates", t.path)
 		t.tmpl = template.Must(template.ParseFiles(path))
 	})
-	t.tmpl.Execute(w, r)
+
+	data := map[string]interface{}{
+		"Host": r.Host,
+	}
+	authCookie, err := r.Cookie("auth")
+	if err == nil {
+		data["UserData"] = objx.MustFromBase64(authCookie.Value)
+		fmt.Printf("User:%s\n", data["UserData"])
+	}
+	t.tmpl.Execute(w, data)
 }
