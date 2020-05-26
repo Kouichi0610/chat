@@ -45,11 +45,13 @@
           }
           socket.onmessage = function(e) {
             //messages.append($("<li>").text(e.data));
+            // eval json文字列をjavascriptのオブジェクトに変換
             var msg = eval("("+e.data+")");
             messages.append(
               $("<li>").append(
                 $("<strong>").text(msg.Name + ": "),
-                $("<span>").text(msg.Message)
+                $("<span>").text(msg.Message),
+                $("<span>").text(" Time:" + msg.When),
               )
             );
           }
