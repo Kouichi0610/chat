@@ -25,6 +25,19 @@ func main() {
 	http.Handle("/login", template.New("login.html"))
 	http.HandleFunc("/auth/", auth.LoginHandler)
 	http.Handle("/room", r)
+
+	// ログアウト処理　クッキーを削除している
+	http.HandleFunc("/logout", func(w http.ResponseWriter, r *http.Request) {
+		http.SetCookie(w, &http.Cookie{
+			Name:   "auth",
+			Value:  "",
+			Path:   "/",
+			MaxAge: -1,
+		})
+		w.Header()["Location"] = []string{"/chat"}
+		w.WriteHeader(http.StatusTemporaryRedirect)
+	})
+
 	// チャットルームを開始する
 	runner.Run()
 
