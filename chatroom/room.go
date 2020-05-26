@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/websocket"
+	"github.com/stretchr/objx"
 )
 
 type Runner interface {
@@ -14,7 +15,7 @@ type Runner interface {
 }
 
 type room struct {
-	forward chan []byte
+	forward chan *message
 	join    chan *client
 	leave   chan *client
 	clients map[*client]bool
@@ -41,10 +42,16 @@ func (r *room) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 		log.Fatal("ServeHTP:", err)
 	}
 
+	authCookie, err := rq.Cookie("auth")
+	if err != nil {
+		log.Fatal("failed get auth cookie ", err)
+		return
+	}
 	client := &client{
-		socket: socket,
-		send:   make(chan []byte, messageBufferSize),
-		room:   r,
+		socket:   socket,
+		send:     make(chan *message, messageBufferSize),
+		room:     r,
+		userData: objx.MustFromBase64(authCookie.Value),
 	}
 	r.join <- client
 	defer func() {
@@ -56,7 +63,7 @@ func (r *room) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 
 func NewRoom() (http.Handler, Runner) {
 	r := &room{
-		forward: make(chan []byte),
+		forward: make(chan *message),
 		join:    make(chan *client),
 		leave:   make(chan *client),
 		clients: make(map[*client]bool),
